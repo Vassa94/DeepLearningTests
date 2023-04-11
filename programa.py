@@ -1,10 +1,14 @@
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
+import pyttsx3
 
 # Descarga los recursos de NLTK necesarios
 nltk.download('punkt')
 nltk.download('stopwords')
+
+# Inicializa el sintetizador de voz
+sintetizador = pyttsx3.init()
 
 # Función para responder preguntas
 def responder_pregunta(pregunta):
@@ -15,16 +19,23 @@ def responder_pregunta(pregunta):
     # Elimina las palabras vacías y las stopwords
     palabras = [palabra for palabra in palabras if palabra.lower() not in stopwords.words('spanish')]
 
-    print('Palabras después de eliminar las stopwords:', palabras)
-    
     # Agrega reglas para responder preguntas específicas
     if 'capital' in palabras and 'españa' in palabras:
-        return 'La capital de España es Madrid.'
+        respuesta = 'La capital de España es Madrid.'
     else:
-        return 'Lo siento, no sé la respuesta a esa pregunta.'
+        respuesta = 'Lo siento, no sé la respuesta a esa pregunta.'
+
+    # Sintetiza la respuesta en voz
+    sintetizar_voz(respuesta)
+
+    return respuesta
+
+# Función para sintetizar la respuesta en voz
+def sintetizar_voz(respuesta):
+    sintetizador.say(respuesta)
+    sintetizador.runAndWait()
 
 # Ejemplo de uso de la función
 pregunta = '¿Cuál es la capital de España?'
 respuesta = responder_pregunta(pregunta)
 print(respuesta)
-
