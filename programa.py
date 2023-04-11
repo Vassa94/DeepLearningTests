@@ -1,41 +1,38 @@
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
-import pyttsx3
+import json
 
-# Descarga los recursos de NLTK necesarios
-nltk.download('punkt')
-nltk.download('stopwords')
+# Cargar preguntas y respuestas desde un archivo JSON
+with open('preguntas.json', 'r') as f:
+    preguntas_y_respuestas = json.load(f)
 
-# Inicializa el sintetizador de voz
-sintetizador = pyttsx3.init()
-
-# Función para responder preguntas
 def responder_pregunta(pregunta):
-    # Tokeniza la pregunta en palabras y oraciones
-    palabras = word_tokenize(pregunta)
-    oraciones = sent_tokenize(pregunta)
+    palabras = pregunta.lower().split()
+    
+    from nltk.corpus import stopwords
+    stop_words = set(stopwords.words('spanish'))
 
-    # Elimina las palabras vacías y las stopwords
-    palabras = [palabra for palabra in palabras if palabra.lower() not in stopwords.words('spanish')]
 
-    # Agrega reglas para responder preguntas específicas
-    if 'capital' in palabras and 'españa' in palabras:
-        respuesta = 'La capital de España es Madrid.'
-    else:
-        respuesta = 'Lo siento, no sé la respuesta a esa pregunta.'
+    # Eliminar stopwords de la pregunta
+    palabras = [p for p in palabras if p not in stop_words]
 
-    # Sintetiza la respuesta en voz
-    sintetizar_voz(respuesta)
+    for p, r in preguntas_y_respuestas.items():
+        if all([palabra in p.lower() for palabra in palabras]):
+            return r
 
-    return respuesta
+    # Si la pregunta no está en la lista, solicitar respuesta al usuario y agregar al diccionario
+    print("Lo siento, no sé la respuesta a esa pregunta.")
+    respuesta_usuario = input("Por favor ingrese la respuesta: ")
+    preguntas_y_respuestas[pregunta] = respuesta_usuario
+    
+    # Guardar preguntas y respuestas actualizadas en el archivo JSON
+    with open('preguntas.json', 'w') as f:
+        json.dump(preguntas_y_respuestas, f, indent=4)
 
-# Función para sintetizar la respuesta en voz
-def sintetizar_voz(respuesta):
-    sintetizador.say(respuesta)
-    sintetizador.runAndWait()
+    return "La respuesta ha sido guardada en la base de conocimiento."
 
 # Ejemplo de uso de la función
-pregunta = '¿Cuál es la capital de España?'
+pregunta = input("Ingresa tu pregunta: ")
 respuesta = responder_pregunta(pregunta)
 print(respuesta)
